@@ -1,0 +1,25 @@
+{
+  "name": "madisonquiz",
+  "version": "1.0.0",
+  "description": "Quiz Assignment",
+  "homepage": "https://github.com/mishpriclassyamra/letsQuiz#readme",
+  "bugs": {
+    "url": "https://github.com/mishpriclassyamra/letsQuiz/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mishpriclassyamra/letsQuiz.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "config": "^4.0.0",
+    "dotenv": "^17.1.0",
+    "express": "^5.1.0"
+  }
+}
