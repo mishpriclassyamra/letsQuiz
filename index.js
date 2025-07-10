@@ -1,19 +1,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Question, Quiz, Answer, Result } = require("./model");
-const {Quizzies} = require('./sampleData');
-var fs = require("fs");
+const { Quizzies } = require('./sampleData');
+const fs = require("fs");
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.json()); // Parse incoming JSON requests
 const PORT = process.env.PORT || 3000;
 
-let results = {};
+let results = {}; // In-memory storage for user results
 
-//Create quiz
+// Create a new quiz
 app.post("/quizes", (req, res) => {
   try {
     const { id, title, questions } = req.body;
+
+    // Basic validation
     if (!id || !title || !Array.isArray(questions)) {
       return res.status(400).json({ error: "Invalid quiz format" });
     }
@@ -22,24 +24,31 @@ app.post("/quizes", (req, res) => {
 
     console.log("Inserting quiz set!!");
 
-    for (var i = 0; i < questions.length; i++) {
+    // Loop through all questions to validate and create Question objects
+    for (let i = 0; i < questions.length; i++) {
       let q = questions[i];
       const { id: qid, text, options, correctOption } = q;
 
-      if (!id || !text || !Array.isArray(options) || options.length != 4 || !correctOption) {
-        throw new Error(`Invalid question format for id ${id}`);
+      // Validate each question
+      if (!qid || !text || !Array.isArray(options) || options.length !== 4 || !correctOption) {
+        throw new Error(`Invalid question format for id ${qid}`);
       }
 
+      // Check if correctOption exists in options
       if (!options.includes(correctOption)) {
-        throw new Error(`Correct option not found among listed 4 options for ${id}`);
+        throw new Error(`Correct option not found among listed 4 options for ${qid}`);
       }
 
       const questionObj = new Question(qid, text, options, correctOption);
       questionObjects.push(questionObj);
     }
 
+    // Push new quiz to the in-memory array
     Quizzies.push({ id, title, questions: questionObjects });
-    fs.writeFile("sampleData.js",
+
+    // Persist updated quiz data to sampleData.js file
+    fs.writeFile(
+      "sampleData.js",
       JSON.stringify(Quizzies, null, 2),
       (err) => {
         if (err) {
@@ -57,18 +66,18 @@ app.post("/quizes", (req, res) => {
   }
 });
 
-//get quiz by id
+// Get quiz by ID (without correct options)
 app.get("/getQuiz/:id", (req, res) => {
-
   try {
-    //find set of quiz based on id from sampledata    
+    // Find quiz by ID
     const quiz = Quizzies.find(q => q.id === req.params.id);
 
-    //no quiz set found!! 
+    // If not found
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
+    // Return questions without correct answers
     const questions = quiz.questions.map(q => ({
       id: q.id,
       text: q.text,
@@ -82,20 +91,18 @@ app.get("/getQuiz/:id", (req, res) => {
     });
 
   } catch (err) {
-    console.log(`ERROR: ${err}`)
-    return res.status(500).json({ error: "Failed to return set of questions!!" })
+    console.log(`ERROR: ${err}`);
+    return res.status(500).json({ error: "Failed to return set of questions!!" });
   }
+});
 
-})
-
-//submit answer
-
+// Submit answer for a quiz question
 app.post("/submit/:quizId/answer", (req, res) => {
   try {
     const { quizId } = req.params;
     const { user_id, question_id, selected_option } = req.body;
 
-    // Validate quiz
+    // Find the quiz
     const quiz = Quizzies[quizId];
     if (!quiz) {
       return res.status(404).json({ error: "Quiz Not Found!!" });
@@ -106,20 +113,21 @@ app.post("/submit/:quizId/answer", (req, res) => {
       return res.status(400).json({ error: "Invalid request" });
     }
 
-    // Find the question
+    // Find the question by ID
     const question = quiz.questions.find(q => q.id === question_id);
     if (!question) {
       return res.status(404).json({ error: "Question not found" });
     }
 
+    // Check if answer is correct
     const is_correct = question.correctOption === selected_option;
 
-    // Initialize quiz entry in results if missing
+    // Initialize results[quizId] if not present
     if (!results[quizId]) {
       results[quizId] = {};
     }
 
-    // Initialize user entry in results if missing
+    // Initialize results[quizId][user_id] if not present
     if (!results[quizId][user_id]) {
       results[quizId][user_id] = {
         quiz_id: quizId,
@@ -136,12 +144,12 @@ app.post("/submit/:quizId/answer", (req, res) => {
       is_correct
     });
 
-    // Update score if correct
+    // Increment score if correct
     if (is_correct) {
       results[quizId][user_id].score++;
     }
 
-    // Respond with result
+    // Respond with answer result
     return res.status(201).json({
       is_correct,
       correct_answer: is_correct ? null : question.correctOption
@@ -153,21 +161,19 @@ app.post("/submit/:quizId/answer", (req, res) => {
   }
 });
 
-//results
+// Get result for a user for a specific quiz
 app.get('/quizzes/:quizId/results/:userId', (req, res) => {
   const { quizId, userId } = req.params;
+
+  // Check if user result exists
   const userResult = results[quizId]?.[userId];
   if (!userResult) return res.status(404).json({ error: 'Result not found' });
+
   res.json(userResult);
 });
 
 module.exports = app;
 
-// 👇 Only listen if not in test mode
-if (require.main === module) {
-  app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
-}
-
 app.listen(PORT, () => {
-  console.log("Server is started");
+  console.log(`Server running at http://localhost:${PORT}`);
 });
