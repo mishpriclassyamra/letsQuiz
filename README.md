@@ -1,7 +1,48 @@
-# letsQuiz
-## 🚀 How to Run Locally
+# Quiz App REST API
 
-### 🔹 1. Clone the Repo
+### Setup Instructions
+
+```bash
+# Clone the repo
+$ git clone <your-repo-url>
+$ cd quiz-app
+
+# Install dependencies
+$ npm install
+
+# Run locally
+$ npm run dev
+
+# Run tests
+$ npm test
+
+# Run with Docker
+$ docker-compose up --build
+```
+
+### API Endpoints
+
+| Method | Endpoint                            | Description                    |
+|--------|--------------------------------------|--------------------------------|
+| POST   | /quizzes                             | Create a new quiz              |
+| GET    | /quizzes/:id                         | Get quiz without answers       |
+| POST   | /quizzes/:quizId/answer              | Submit answer, get feedback    |
+| GET    | /quizzes/:quizId/results/:userId     | Get user score + answer stats  |
+
+### Tech Stack
+- Node.js
+- Express.js
+- Jest + Supertest
+- Docker & docker-compose
+
+## Known Issues & Limitations
+-  In-memory data: Quizzes and results are stored in-memory (sampleData.js and results object), so data is lost on restart.
+- No DB or persistent store: For demo only. Not production-ready,Data resets when server restarts
+- Jest test file (index.test.js) expects quiz structure to match expected format (correctOption, etc.)
+
+
+
+### 1. Clone the Repo
 git clone https://github.com/your-username/quiz-api.git
 cd quiz-api
 

@@ -1,0 +1,17 @@
+# File: docker-compose.yml
+# version: '3.8'
+services:
+  quiz-app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    command: npm start
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
